@@ -12,6 +12,7 @@ public class TextEditor extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(600, 450);
         setTitle("Text Editor");
+        setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
         JTextArea textArea = new JTextArea();
@@ -69,7 +70,38 @@ public class TextEditor extends JFrame {
 
         add(topPanel, BorderLayout.NORTH);
         add(scrollBar, BorderLayout.CENTER);
+
+        setupMenu();
         setVisible(true);
+    }
+
+    void setupMenu(){
+
+        JMenuBar menuBar = new JMenuBar();
+
+        JMenu fileMenu = new JMenu("File");
+        fileMenu.setName("MenuFile");
+
+        JMenuItem loadItem = new JMenuItem("Load");
+        loadItem.setName("MenuLoad");
+        JMenuItem saveItem = new JMenuItem("Save");
+        saveItem.setName("MenuSave");
+        JMenuItem exitItem = new JMenuItem("Exit");
+        exitItem.setName("MenuExit");
+        exitItem.addActionListener((ActionEvent event) -> {
+
+            dispose();
+
+        });
+
+        fileMenu.add(loadItem);
+        fileMenu.add(saveItem);
+        fileMenu.addSeparator();
+        fileMenu.add(exitItem);
+
+        menuBar.add(fileMenu);
+        setJMenuBar(menuBar);
+
     }
 
 
