@@ -1,10 +1,14 @@
 package editor;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.util.Properties;
 import java.util.Scanner;
 
 public class TextEditor extends JFrame {
@@ -14,6 +18,14 @@ public class TextEditor extends JFrame {
         setTitle("Text Editor");
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
+
+        Properties properties = new Properties();
+        try {
+            FileInputStream file = new FileInputStream("PROPERTY_SOURCE");
+            properties.load(file);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         JTextArea textArea = new JTextArea();
         textArea.setName("TextArea");
@@ -29,12 +41,12 @@ public class TextEditor extends JFrame {
         scrollBar.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scrollBar.setName("ScrollPane");
 
-        JButton saveButton = new JButton("Save");
+        JButton saveButton = new JButton(new ImageIcon(properties.getProperty("save")));
         saveButton.setName("SaveButton");
         saveButton.addActionListener((ActionEvent event)->{
 
             final String classPath = field.getText();
-            try(FileWriter writer = new FileWriter(new File("Text Editor\\task\\src\\"+ classPath))){
+            try(FileWriter writer = new FileWriter(new File(classPath))){
 
                 writer.write(textArea.getText());
 
@@ -45,11 +57,13 @@ public class TextEditor extends JFrame {
 
         });
 
-        JButton loadButton = new JButton("Load");
+
+        JButton loadButton = new JButton(new ImageIcon(properties.getProperty("load")));
         loadButton.setName("LoadButton");
         loadButton.addActionListener((ActionEvent event)->{
-            final String classPath = field.getText();
-            File loadFile = new File("Text Editor\\task\\src\\" + classPath);
+            JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
+            int returnValue = jfc.showOpenDialog(null);
+            File loadFile = jfc.getSelectedFile();
             System.out.println(loadFile.getAbsolutePath());
             try(Scanner scanner = new Scanner(loadFile)){
                 while (scanner.hasNext()){
@@ -62,11 +76,25 @@ public class TextEditor extends JFrame {
 
         });
 
+        JButton startSearch = new JButton(new ImageIcon(properties.getProperty("start")));
+        startSearch.setName("StartSearchButton");
+
+        JButton nextMatch = new JButton(new ImageIcon(properties.getProperty("next")));
+        nextMatch.setName("NextMatchButton");
+
+        JButton previousMatch = new JButton(new ImageIcon(properties.getProperty("previous")));
+        previousMatch.setName("PreviousMatchButton");
+
+
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new FlowLayout());
-        topPanel.add(field);
         topPanel.add(saveButton);
         topPanel.add(loadButton);
+        topPanel.add(field);
+        topPanel.add(startSearch);
+        topPanel.add(previousMatch);
+        topPanel.add(nextMatch);
+
 
         add(topPanel, BorderLayout.NORTH);
         add(scrollBar, BorderLayout.CENTER);
@@ -81,6 +109,8 @@ public class TextEditor extends JFrame {
 
         JMenu fileMenu = new JMenu("File");
         fileMenu.setName("MenuFile");
+        JMenu searchMenu = new JMenu("Search");
+        fileMenu.setName("MenuSearch");
 
         JMenuItem loadItem = new JMenuItem("Load");
         loadItem.setName("MenuLoad");
@@ -94,12 +124,28 @@ public class TextEditor extends JFrame {
 
         });
 
+
+        JMenuItem startItem = new JMenuItem("Start Search");
+        loadItem.setName("MenuStartSearch");
+        JMenuItem prevItem = new JMenuItem("Previous search");
+        saveItem.setName("MenuPreviousMatch");
+        JMenuItem nextItem = new JMenuItem("Next match");
+        exitItem.setName("MenuNextMatch");
+        JMenuItem regExItem = new JMenuItem("Use regular expressions");
+        exitItem.setName("MenuUseRegExp");
+
+        searchMenu.add(startItem);
+        searchMenu.add(prevItem);
+        searchMenu.add(nextItem);
+        searchMenu.add(regExItem);
+
         fileMenu.add(loadItem);
         fileMenu.add(saveItem);
         fileMenu.addSeparator();
         fileMenu.add(exitItem);
 
         menuBar.add(fileMenu);
+        menuBar.add(searchMenu);
         setJMenuBar(menuBar);
 
     }
