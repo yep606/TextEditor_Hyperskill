@@ -7,17 +7,33 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
-import java.util.Properties;
-import java.util.Scanner;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TextEditor extends JFrame {
 
-    private boolean isClicked = false;
-    private Pattern pattern;
-    private Matcher matcher;
-    private int inc = 0;
+    public boolean isClicked = false;
+    public Pattern pattern;
+    public Matcher matcher;
+    private SearchWorker worker;
+    private JTextArea textArea;
+    private JTextField searchField;
+    private JScrollPane scrollBar;
+    private JButton saveButton;
+    private JButton loadButton;
+    private JButton startSearch;
+    private JButton nextMatch;
+    private JButton previousMatch;
+    private JCheckBox checkBox;
+    private JPanel topPanel;
+    private Properties properties;
+    private static int increment = 0;
+    private Map<Integer, Integer> search = new LinkedHashMap<>();
+
+    public Map<Integer, Integer> getSearch() {
+        return search;
+    }
 
     public TextEditor() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -26,35 +42,91 @@ public class TextEditor extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        Properties properties = new Properties();
+        textArea = new JTextArea();
+        textArea.setName("TextArea");
+        textArea.setLineWrap(true);
+
+        scrollBar = new JScrollPane(textArea);
+        scrollBar.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        scrollBar.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollBar.setName("ScrollPane");
+
+        initialProperties();
+        loadPanel();
+        setupListeners();
+
+        add(topPanel, BorderLayout.NORTH);
+        add(scrollBar, BorderLayout.CENTER);
+
+        setupMenu();
+        setVisible(true);
+    }
+
+    private void initialProperties() {
+
+        properties = new Properties();
         try {
-            FileInputStream file = new FileInputStream("PROPERTY_SOURCE");
+            FileInputStream file = new FileInputStream("YOUR SOURCE");
             properties.load(file);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        JTextArea textArea = new JTextArea();
-        textArea.setName("TextArea");
-        textArea.setLineWrap(true);
+    }
+
+    private void loadPanel() {
+
+        topPanel = new JPanel();
+
+        saveButton = new JButton(new ImageIcon(properties.getProperty("save")));
+        saveButton.setName("SaveButton");
+
+        loadButton = new JButton(new ImageIcon(properties.getProperty("load")));
+        loadButton.setName("LoadButton");
 
         Dimension dimension = new Dimension(300, 20);
-        JTextField field = new JTextField();
-        field.setMinimumSize(dimension);
-        field.setPreferredSize(dimension);
-        field.setName("FilenameField");
+        searchField = new JTextField();
+        searchField.setMinimumSize(dimension);
+        searchField.setPreferredSize(dimension);
+        searchField.setName("FilenameField");
 
-        JScrollPane scrollBar = new JScrollPane(textArea);
-        scrollBar.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        scrollBar.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        scrollBar.setName("ScrollPane");
+        startSearch = new JButton(new ImageIcon(properties.getProperty("start")));
+        startSearch.setName("StartSearchButton");
 
-        // LEFT SIDE
-        JButton saveButton = new JButton(new ImageIcon(properties.getProperty("save")));
-        saveButton.setName("SaveButton");
+        nextMatch = new JButton(new ImageIcon(properties.getProperty("next")));
+        nextMatch.setName("NextMatchButton");
+
+        previousMatch = new JButton(new ImageIcon(properties.getProperty("previous")));
+        previousMatch.setName("PreviousMatchButton");
+
+        checkBox = new JCheckBox("Use regex");
+        checkBox.setName("UseRegExCheckbox");
+
+        topPanel.setLayout(new FlowLayout());
+        topPanel.add(saveButton);
+        topPanel.add(loadButton);
+        topPanel.add(searchField);
+        topPanel.add(startSearch);
+        topPanel.add(previousMatch);
+        topPanel.add(nextMatch);
+        topPanel.add(checkBox);
+
+    }
+
+    public JTextArea getTextArea() {
+        return textArea;
+    }
+
+    public JTextField getSearchField() {
+        return searchField;
+    }
+
+
+    private void setupListeners() {
+
         saveButton.addActionListener((ActionEvent event) -> {
 
-            final String classPath = field.getText();
+            final String classPath = searchField.getText();
             try (FileWriter writer = new FileWriter(new File(classPath))) {
 
                 writer.write(textArea.getText());
@@ -65,8 +137,6 @@ public class TextEditor extends JFrame {
 
         });
 
-        JButton loadButton = new JButton(new ImageIcon(properties.getProperty("load")));
-        loadButton.setName("LoadButton");
         loadButton.addActionListener((ActionEvent event) -> {
             JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
             int returnValue = jfc.showOpenDialog(null);
@@ -82,92 +152,64 @@ public class TextEditor extends JFrame {
 
         });
 
-        // RIGHT SIDE
-        JButton startSearch = new JButton(new ImageIcon(properties.getProperty("start")));
-        startSearch.setName("StartSearchButton");
-        startSearch.addActionListener((ActionEvent event) -> {
+        nextMatch.addActionListener((ActionEvent event) -> {
+            if (increment < search.size() - 1 ){
 
-            pattern = Pattern.compile(field.getText(), Pattern.CASE_INSENSITIVE);
-            matcher = pattern.matcher(textArea.getText());
-
-            if(isClicked){
+                int start = (int) search.keySet().toArray()[++increment];
+                int end = search.get(start);
+                textArea.setCaretPosition(start + end);
+                textArea.select(start, start + end);
+                textArea.grabFocus();
 
             }
 
-            else {
-
-                while(matcher.find()){
-                    System.out.println(matcher.group() + " " + matcher.start());
-//                    inc++;
-//                    textArea.setCaretPosition(matcher.start(inc) + matcher.group(inc).length());
-//                    textArea.select(matcher.start(inc), matcher.start(inc) + matcher.group(inc).length());
-//                    textArea.grabFocus();
-
-                }
-            }
-            System.out.println("end");
-            System.out.println(matcher.group() + " " + matcher.start());
+            else
+                System.out.println("error");
 
         });
 
-        JButton nextMatch = new JButton(new ImageIcon(properties.getProperty("next")));
-        nextMatch.setName("NextMatchButton");
+        startSearch.addActionListener((ActionEvent event) -> {
 
-        JButton previousMatch = new JButton(new ImageIcon(properties.getProperty("previous")));
-        previousMatch.setName("PreviousMatchButton");
+            worker = new SearchWorker(this);
+            worker.execute();
 
-        JCheckBox checkBox = new JCheckBox("Use regex");
-        checkBox.setName("UseRegExCheckbox");
+        });
+
         checkBox.addActionListener((ActionEvent event) -> isClicked = !isClicked
-            );
+        );
 
 
-
-        JPanel topPanel = new JPanel();
-        topPanel.setLayout(new FlowLayout());
-        topPanel.add(saveButton);
-        topPanel.add(loadButton);
-        topPanel.add(field);
-        topPanel.add(startSearch);
-        topPanel.add(previousMatch);
-        topPanel.add(nextMatch);
-        topPanel.add(checkBox);
-
-
-        add(topPanel, BorderLayout.NORTH);
-        add(scrollBar, BorderLayout.CENTER);
-
-        setupMenu();
-        setVisible(true);
     }
 
-    void setupMenu() {
+    private void setupMenu() {
 
         JMenuBar menuBar = new JMenuBar();
 
         JMenu fileMenu = new JMenu("File");
         fileMenu.setName("MenuFile");
+
         JMenu searchMenu = new JMenu("Search");
         fileMenu.setName("MenuSearch");
 
         JMenuItem loadItem = new JMenuItem("Load");
         loadItem.setName("MenuLoad");
+
         JMenuItem saveItem = new JMenuItem("Save");
         saveItem.setName("MenuSave");
+
         JMenuItem exitItem = new JMenuItem("Exit");
         exitItem.setName("MenuExit");
-        exitItem.addActionListener((ActionEvent event) -> {
-
-            dispose();
-
-        });
+        exitItem.addActionListener((ActionEvent event) -> dispose());
 
         JMenuItem startItem = new JMenuItem("Start Search");
         loadItem.setName("MenuStartSearch");
+
         JMenuItem prevItem = new JMenuItem("Previous search");
         saveItem.setName("MenuPreviousMatch");
+
         JMenuItem nextItem = new JMenuItem("Next match");
         exitItem.setName("MenuNextMatch");
+
         JMenuItem regExItem = new JMenuItem("Use regular expressions");
         exitItem.setName("MenuUseRegExp");
 
@@ -183,6 +225,7 @@ public class TextEditor extends JFrame {
 
         menuBar.add(fileMenu);
         menuBar.add(searchMenu);
+
         setJMenuBar(menuBar);
 
     }
