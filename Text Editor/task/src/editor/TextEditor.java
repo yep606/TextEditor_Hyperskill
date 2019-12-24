@@ -66,8 +66,7 @@ public class TextEditor extends JFrame {
 
         properties = new Properties();
         try {
-            FileInputStream file = new FileInputStream("YOUR SOURCE");
-            properties.load(file);
+            FileInputStream file = new FileInputStream("YOUR_SOURCE");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -166,6 +165,23 @@ public class TextEditor extends JFrame {
             else
                 System.out.println("error");
 
+
+        } );
+
+        previousMatch.addActionListener((ActionEvent event) -> {
+            if (increment != 0){
+                int start = (int) search.keySet().toArray()[--increment];
+                int end = search.get(start);
+                textArea.setCaretPosition(start + end);
+                textArea.select(start, start + end);
+                textArea.grabFocus();
+
+            }
+
+
+            else
+                System.out.println("error");
+
         });
 
         startSearch.addActionListener((ActionEvent event) -> {
@@ -175,7 +191,10 @@ public class TextEditor extends JFrame {
 
         });
 
-        checkBox.addActionListener((ActionEvent event) -> isClicked = !isClicked
+        checkBox.addActionListener((ActionEvent event) -> {
+            isClicked = !isClicked;
+            checkBox.setEnabled(true);
+        }
         );
 
 
@@ -193,9 +212,11 @@ public class TextEditor extends JFrame {
 
         JMenuItem loadItem = new JMenuItem("Load");
         loadItem.setName("MenuLoad");
+        loadItem.addActionListener(loadButton.getActionListeners()[0]);
 
         JMenuItem saveItem = new JMenuItem("Save");
         saveItem.setName("MenuSave");
+        saveItem.addActionListener(saveButton.getActionListeners()[0]);
 
         JMenuItem exitItem = new JMenuItem("Exit");
         exitItem.setName("MenuExit");
@@ -203,25 +224,29 @@ public class TextEditor extends JFrame {
 
         JMenuItem startItem = new JMenuItem("Start Search");
         loadItem.setName("MenuStartSearch");
+        startItem.addActionListener(startSearch.getActionListeners()[0]);
 
-        JMenuItem prevItem = new JMenuItem("Previous search");
+        JMenuItem prevItem = new JMenuItem("Previous match");
         saveItem.setName("MenuPreviousMatch");
+        prevItem.addActionListener(previousMatch.getActionListeners()[0]);
 
         JMenuItem nextItem = new JMenuItem("Next match");
         exitItem.setName("MenuNextMatch");
+        nextItem.addActionListener(nextMatch.getActionListeners()[0]);
 
         JMenuItem regExItem = new JMenuItem("Use regular expressions");
         exitItem.setName("MenuUseRegExp");
-
-        searchMenu.add(startItem);
-        searchMenu.add(prevItem);
-        searchMenu.add(nextItem);
-        searchMenu.add(regExItem);
+        regExItem.addActionListener(checkBox.getActionListeners()[0]);
 
         fileMenu.add(loadItem);
         fileMenu.add(saveItem);
         fileMenu.addSeparator();
         fileMenu.add(exitItem);
+
+        searchMenu.add(startItem);
+        searchMenu.add(nextItem);
+        searchMenu.add(prevItem);
+        searchMenu.add(regExItem);
 
         menuBar.add(fileMenu);
         menuBar.add(searchMenu);

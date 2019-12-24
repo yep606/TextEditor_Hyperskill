@@ -16,8 +16,6 @@ public class SearchWorker extends SwingWorker<String, Object> {
 
     @Override
     protected String doInBackground() throws Exception {
-
-
         editor.pattern = Pattern.compile(editor.getSearchField().getText(), Pattern.CASE_INSENSITIVE);
         editor.matcher = editor.pattern.matcher(editor.getTextArea().getText());
         if(editor.isClicked){
