@@ -67,6 +67,7 @@ public class TextEditor extends JFrame {
         properties = new Properties();
         try {
             FileInputStream file = new FileInputStream("YOUR_SOURCE");
+            properties.load(file);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -152,7 +153,7 @@ public class TextEditor extends JFrame {
         });
 
         nextMatch.addActionListener((ActionEvent event) -> {
-            if (increment < search.size() - 1 ){
+            if (increment < search.size() - 1) {
 
                 int start = (int) search.keySet().toArray()[++increment];
                 int end = search.get(start);
@@ -160,41 +161,34 @@ public class TextEditor extends JFrame {
                 textArea.select(start, start + end);
                 textArea.grabFocus();
 
-            }
-
-            else
-                System.out.println("error");
-
-
-        } );
+            } else
+                System.out.println("out of bounds");
+        });
 
         previousMatch.addActionListener((ActionEvent event) -> {
-            if (increment != 0){
+            if (increment != 0) {
                 int start = (int) search.keySet().toArray()[--increment];
                 int end = search.get(start);
                 textArea.setCaretPosition(start + end);
                 textArea.select(start, start + end);
                 textArea.grabFocus();
 
-            }
-
-
-            else
-                System.out.println("error");
+            } else
+                System.out.println("out of bounds");
 
         });
 
         startSearch.addActionListener((ActionEvent event) -> {
-
+            search.clear();
+            increment = 0;
             worker = new SearchWorker(this);
             worker.execute();
 
         });
 
         checkBox.addActionListener((ActionEvent event) -> {
-            isClicked = !isClicked;
-            checkBox.setEnabled(true);
-        }
+                    isClicked = !isClicked;
+                }
         );
 
 
@@ -236,13 +230,13 @@ public class TextEditor extends JFrame {
 
         JMenuItem regExItem = new JMenuItem("Use regular expressions");
         exitItem.setName("MenuUseRegExp");
-        regExItem.addActionListener(checkBox.getActionListeners()[0]);
+        regExItem.addActionListener((ActionEvent event) -> checkBox.doClick());
 
         fileMenu.add(loadItem);
         fileMenu.add(saveItem);
         fileMenu.addSeparator();
         fileMenu.add(exitItem);
-    
+
         searchMenu.add(startItem);
         searchMenu.add(nextItem);
         searchMenu.add(prevItem);
