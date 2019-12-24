@@ -242,7 +242,7 @@ public class TextEditor extends JFrame {
         fileMenu.add(saveItem);
         fileMenu.addSeparator();
         fileMenu.add(exitItem);
-
+    
         searchMenu.add(startItem);
         searchMenu.add(nextItem);
         searchMenu.add(prevItem);
